@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <h2>Планирование</h2>
     <Main/>
   </div>
 </template>
@@ -17,7 +18,10 @@ export default {
 </script>
 
 <style lang="scss">
-#app {
+body {
+  background: #E5E5E5;
+}
 
+#app {
 }
 </style>
