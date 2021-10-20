@@ -55,8 +55,8 @@
           <p>{{ attributes.length | formatWord(['поездка', 'поездки', 'поездок']) }}</p>
         </div>
         <div class="employee__days">
-          <p>24</p>
-          <p>дня командировки</p>
+          <p>{{ tripLength }}</p>
+          <p>{{ tripLength | formatWord(['день', 'дня', 'дней']) }} командировки</p>
         </div>
       </div>
     </div>
@@ -66,6 +66,7 @@
 <script>
 import backButtonImg from '../assets/button-back.png'
 import nextButtonImg from '../assets/button-next.png'
+import moment from 'moment'
 
 export default {
   data() {
@@ -75,6 +76,7 @@ export default {
       colors: {},
       holidays: [],
       displayedYear: null,
+      tripLength: 0,
       backButtonImg,
       nextButtonImg,
       masks: {
@@ -226,6 +228,7 @@ export default {
 
             this.attributes = []
             const employeeTrips = this.getEmployeeById(this.selectedEmployee.id).businessTrips
+            this.tripLength = 0
             employeeTrips.map((trip, i) => {
               const dateArrayStart = trip.date.start.split(`.`)
               const dateArrayEnd = trip.date.end.split(`.`)
@@ -238,9 +241,13 @@ export default {
                 },
                 // dates: new Date(year, month - 1, day),
                 dates: [
-                  { start: new Date(year, month - 1, day), end: new Date(yearEnd, monthEnd - 1, dayEnd) },
+                  {start: new Date(year, month - 1, day), end: new Date(yearEnd, monthEnd - 1, dayEnd)},
                 ]
               }
+              // console.log(3333, employeeData.dates[0].end - employeeData.dates[0].start)
+              const diff = new moment.duration(employeeData.dates[0].end - employeeData.dates[0].start);
+              this.tripLength += diff.asDays() + 1
+              // console.log(`asDays`, diff.asDays() + 1);
               this.attributes.push(employeeData)
 
             })
