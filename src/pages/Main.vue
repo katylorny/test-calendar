@@ -51,11 +51,11 @@
       </div>
       <div class="employee__data">
         <div class="employee__trips">
-          <p>{{ attributes.length }}</p>
+          <p class="employee__duration">{{ attributes.length }}</p>
           <p>{{ attributes.length | formatWord(['поездка', 'поездки', 'поездок']) }}</p>
         </div>
         <div class="employee__days">
-          <p>{{ tripLength }}</p>
+          <p class="employee__duration">{{ tripLength }}</p>
           <p>{{ tripLength | formatWord(['день', 'дня', 'дней']) }} командировки</p>
         </div>
       </div>
@@ -324,6 +324,14 @@ export default {
   padding: 0;
 }
 
+.employee__duration {
+  font-weight: normal;
+  font-size: 32px;
+  line-height: 120%;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
 
 ///
 
@@ -378,6 +386,7 @@ export default {
     color: black;
     font-size: 12px;
     border-top: 2px solid rgba(0, 65, 102, 0.1);
+    font-family: 'Roboto Condensed', Arial, sans-serif;
   }
 
   & .vc-day {
@@ -435,6 +444,7 @@ export default {
 
   .day-label {
     margin-left: auto;
+    font-family: 'Roboto Condensed', Arial, sans-serif;
   }
 
   .day-text {
@@ -454,6 +464,7 @@ export default {
     margin: 0 0 auto auto;
     font-size: 12px;
     width: fit-content;
+    font-family: 'Roboto Condensed', Arial, sans-serif;
   }
 
 }
