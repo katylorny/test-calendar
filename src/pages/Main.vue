@@ -5,18 +5,27 @@
           is-expanded
           class="custom-calendar"
           :masks="masks"
-          :attributes="attributes"
+          :attributes="[...fullHolidays, ...attributes]"
           title-position="left"
           trim-weeks
+          @update:to-page="onPageChange"
       >
         <template v-slot:day-content="{ day, attributes }">
           <div class="day">
             <span class="day-label">{{ day.day }}</span>
             <div class="day-text">
               <p
+                  v-if="!holidays.includes(`${day.day}.${day.month}`) && (day.weekday === 1 || day.weekday === 7)"
+                  class="day-event"
+              >
+                Выходной
+              </p>
+              <p
+                  v-else
                   v-for="attr in attributes"
                   :key="attr.key"
                   class="day-event"
+                  :style="{background: colors[attr.customData.title]}"
               >
                 {{ attr.customData.title }}
               </p>
@@ -36,7 +45,20 @@
       </v-calendar>
     </div>
     <div class="employee">
-      Сотрудник
+      <div class="employee__name">
+        <v-select v-model="selectedEmployee" class="employee__select"
+                  :options="options" :clearable="false" @input="onEmployeeChange"></v-select>
+      </div>
+      <div class="employee__data">
+        <div class="employee__trips">
+          <p>4</p>
+          <p>поездки</p>
+        </div>
+        <div class="employee__days">
+          <p>24</p>
+          <p>дня командировки</p>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -47,113 +69,169 @@ import nextButtonImg from '../assets/button-next.png'
 
 export default {
   data() {
-
-    const month = new Date().getMonth();
-    const year = new Date().getFullYear();
     return {
+      employeesInfo: [],
+      selectedEmployee: {},
+      colors: {},
+      holidays: [],
+      displayedYear: null,
       backButtonImg,
       nextButtonImg,
       masks: {
         weekdays: 'WWWW',
       },
       attributes: [
-        {
-          key: 1,
-          customData: {
-            title: 'Вологда',
-            class: 'bg-red-600 text-white',
-          },
-          dates: new Date(year, month, 1),
-        },
-        {
-          key: 2,
-          customData: {
-            title: 'Рязань',
-            class: 'bg-blue-500 text-white',
-          },
-          dates: new Date(year, month, 2),
-        },
         // {
-        //   key: 3,
+        //   key: 1,
         //   customData: {
-        //     title: "Noah's basketball game.",
+        //     title: 'Вологда',
+        //     class: 'bg-red-600 text-white',
+        //   },
+        //   dates: new Date(year, month, 1),
+        // },
+        // {
+        //   key: 2,
+        //   customData: {
+        //     title: 'Рязань',
         //     class: 'bg-blue-500 text-white',
+        //   },
+        //   dates: new Date(year, month, 2),
+        // },
+        // // {
+        // //   key: 3,
+        // //   customData: {
+        // //     title: "Noah's basketball game.",
+        // //     class: 'bg-blue-500 text-white',
+        // //   },
+        // //   dates: new Date(year, month, 5),
+        // // },
+        // {
+        //   key: 4,
+        //   customData: {
+        //     title: 'Ефремов',
+        //     class: 'bg-indigo-500 text-white',
         //   },
         //   dates: new Date(year, month, 5),
         // },
-        {
-          key: 4,
-          customData: {
-            title: 'Ефремов',
-            class: 'bg-indigo-500 text-white',
-          },
-          dates: new Date(year, month, 5),
-        },
-        {
-          key: 4,
-          customData: {
-            title: 'Вологда',
-            class: 'bg-teal-500 text-white',
-          },
-          dates: new Date(year, month, 7),
-        },
-        {
-          key: 5,
-          customData: {
-            title: "Екатеринбург",
-            class: 'bg-pink-500 text-white',
-          },
-          dates: new Date(year, month, 11),
-        },
-        {
-          key: 6,
-          customData: {
-            title: 'Mocква',
-            class: 'bg-orange-500 text-white',
-          },
-          dates: {months: 5, ordinalWeekdays: {2: 1}},
-        },
-        {
-          key: 7,
-          customData: {
-            title: "Mocква",
-            class: 'bg-pink-500 text-white',
-          },
-          dates: new Date(year, month, 22),
-        },
-        {
-          key: 8,
-          customData: {
-            title: 'Mocква',
-            class: 'bg-red-600 text-white',
-          },
-          dates: new Date(year, month, 25),
-        },
+        // {
+        //   key: 4,
+        //   customData: {
+        //     title: 'Вологда',
+        //     class: 'bg-teal-500 text-white',
+        //   },
+        //   dates: new Date(year, month, 7),
+        // },
+        // {
+        //   key: 5,
+        //   customData: {
+        //     title: "Екатеринбург",
+        //     class: 'bg-pink-500 text-white',
+        //   },
+        //   dates: new Date(year, month, 11),
+        // },
+        // {
+        //   key: 6,
+        //   customData: {
+        //     title: 'Mocква',
+        //     class: 'bg-orange-500 text-white',
+        //   },
+        //   dates: {months: 5, ordinalWeekdays: {2: 1}},
+        // },
+        // {
+        //   key: 7,
+        //   customData: {
+        //     title: "Mocква",
+        //     class: 'bg-pink-500 text-white',
+        //   },
+        //   dates: new Date(year, month, 22),
+        // },
+        // {
+        //   key: 8,
+        //   customData: {
+        //     title: 'Mocква',
+        //     class: 'bg-red-600 text-white',
+        //   },
+        //   dates: new Date(year, month, 25),
+        // },
       ],
     };
   },
   mounted() {
-    fetch(`/API/employees.json`)
+    this.onEmployeeChange()
+    fetch(`/API/colors.json`)
+    .then(response => response.json())
+    .then(response => {
+      this.colors = response
+    })
+
+    fetch(`/API/holidays.json`)
         .then(response => response.json())
-        .then((response) => {
-          this.attributes = []
-          const employeeTrips = response.employees[0].businessTrips
-          employeeTrips.map((trip, i) => {
-            const dateArray = trip.date.split(`.`)
-            const [day, month, year] = dateArray
-            console.log(`dateArray`, dateArray);
-            const employeeData = {
-              key: i,
-              customData: {
-                title: trip.cityName,
-              },
-              dates: new Date(year, month - 1, day),
+        .then(response => {
+          this.holidays = response
+        })
+  },
+  computed: {
+    options() {
+      const options = []
+      this.employeesInfo.map((employee, i) => {
+        options[i] = {
+          label: employee.name,
+          id: employee.id
+        }
+      })
+
+      return options
+    },
+    fullHolidays() {
+      const holidays = []
+      this.holidays.map((holiday, i) => {
+        const [day, month] = holiday.split('.')
+        holidays[i] = {
+          customData: {
+            title: "Праздник"
+          },
+          dates: new Date(this.displayedYear, month - 1, day)
+        }
+      })
+      return holidays
+    }
+  },
+
+  methods: {
+    onPageChange(e) {
+      console.log(`e`, e.year);
+      this.displayedYear = e.year
+    },
+    onEmployeeChange() {
+      fetch(`/API/employees.json`)
+          .then(response => response.json())
+          .then((response) => {
+            this.employeesInfo = response.employees
+            if (!this.selectedEmployee.label) {
+              this.selectedEmployee = this.options[0]
             }
-            this.attributes.push(employeeData)
+
+            this.attributes = []
+            const employeeTrips = this.getEmployeeById(this.selectedEmployee.id).businessTrips
+            employeeTrips.map((trip, i) => {
+              const dateArray = trip.date.split(`.`)
+              const [day, month, year] = dateArray
+              const employeeData = {
+                key: i,
+                customData: {
+                  title: trip.cityName,
+                },
+                dates: new Date(year, month - 1, day),
+              }
+              this.attributes.push(employeeData)
+
+            })
 
           })
-
-        })
+    },
+    getEmployeeById(id) {
+      return this.employeesInfo.find(it => it.id === id)
+    }
   }
 };
 </script>
@@ -162,7 +240,36 @@ export default {
 
 .employee {
   display: flex;
-  background: wheat;
+  height: fit-content;
+  flex-direction: column;
+}
+
+.employee__select {
+  height: fit-content;
+  width: 100%;
+}
+
+.employee__name {
+  margin-bottom: 10px;
+  background: white;
+  padding: 26px 26px 26px 32px;
+  border-radius: 6px;
+}
+
+.employee__data {
+  background: white;
+  padding: 48px 36px 30px 30px;
+  border-radius: 6px;
+}
+
+.employee__trips {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);;
+}
+
+.employee__trips,
+.employee__days {
+  display: flex;
+  justify-content: space-between;
 }
 
 .main {
@@ -175,6 +282,7 @@ export default {
   width: 70%;
   margin-right: 30px;
   padding: 19px 27px 66px;
+  border-radius: 6px;
 }
 
 .employee {
@@ -306,7 +414,7 @@ export default {
   }
 
   .day-event {
-    background: red;
+    background: #97B2C4;
     padding-left: 10px;
     padding-right: 10px;
     border-radius: 4px;
