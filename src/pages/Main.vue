@@ -5,7 +5,7 @@
           is-expanded
           class="custom-calendar"
           :masks="masks"
-          :attributes="[...fullHolidays, ...attributes]"
+          :attributes="fullAttributes"
           title-position="left"
           trim-weeks
           @update:to-page="onPageChange"
@@ -51,8 +51,8 @@
       </div>
       <div class="employee__data">
         <div class="employee__trips">
-          <p>4</p>
-          <p>поездки</p>
+          <p>{{ attributes.length }}</p>
+          <p>{{ attributes.length | formatWord(['поездка', 'поездки', 'поездок']) }}</p>
         </div>
         <div class="employee__days">
           <p>24</p>
@@ -159,10 +159,10 @@ export default {
   mounted() {
     this.onEmployeeChange()
     fetch(`/API/colors.json`)
-    .then(response => response.json())
-    .then(response => {
-      this.colors = response
-    })
+        .then(response => response.json())
+        .then(response => {
+          this.colors = response
+        })
 
     fetch(`/API/holidays.json`)
         .then(response => response.json())
@@ -194,12 +194,25 @@ export default {
         }
       })
       return holidays
+    },
+    fullAttributes() {
+      return [...this.attributes, ...this.fullHolidays]
+    }
+  },
+
+  filters: {
+    formatWord(value, words) {
+      value = Math.abs(value) % 100;
+      var num = value % 10;
+      if (value > 10 && value < 20) return words[2];
+      if (num > 1 && num < 5) return words[1];
+      if (num === 1) return words[0];
+      return words[2];
     }
   },
 
   methods: {
     onPageChange(e) {
-      console.log(`e`, e.year);
       this.displayedYear = e.year
     },
     onEmployeeChange() {
@@ -214,14 +227,19 @@ export default {
             this.attributes = []
             const employeeTrips = this.getEmployeeById(this.selectedEmployee.id).businessTrips
             employeeTrips.map((trip, i) => {
-              const dateArray = trip.date.split(`.`)
-              const [day, month, year] = dateArray
+              const dateArrayStart = trip.date.start.split(`.`)
+              const dateArrayEnd = trip.date.end.split(`.`)
+              const [day, month, year] = dateArrayStart
+              const [dayEnd, monthEnd, yearEnd] = dateArrayEnd
               const employeeData = {
                 key: i,
                 customData: {
                   title: trip.cityName,
                 },
-                dates: new Date(year, month - 1, day),
+                // dates: new Date(year, month - 1, day),
+                dates: [
+                  { start: new Date(year, month - 1, day), end: new Date(yearEnd, monthEnd - 1, dayEnd) },
+                ]
               }
               this.attributes.push(employeeData)
 
