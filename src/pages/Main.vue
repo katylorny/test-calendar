@@ -132,6 +132,29 @@ export default {
       ],
     };
   },
+  mounted() {
+    fetch(`/API/employees.json`)
+        .then(response => response.json())
+        .then((response) => {
+          this.attributes = []
+          const employeeTrips = response.employees[0].businessTrips
+          employeeTrips.map((trip, i) => {
+            const dateArray = trip.date.split(`.`)
+            const [day, month, year] = dateArray
+            console.log(`dateArray`, dateArray);
+            const employeeData = {
+              key: i,
+              customData: {
+                title: trip.cityName,
+              },
+              dates: new Date(year, month - 1, day),
+            }
+            this.attributes.push(employeeData)
+
+          })
+
+        })
+  }
 };
 </script>
 
