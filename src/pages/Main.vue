@@ -358,6 +358,9 @@ export default {
 
   & .vc-title {
     font-size: 32px;
+    font-family: "Roboto Condensed", Arial, sans-serif;
+    font-style: normal;
+    font-weight: bold;
     line-height: 150%;
   }
 
