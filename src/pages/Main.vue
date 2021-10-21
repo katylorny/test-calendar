@@ -47,7 +47,20 @@
     <div class="employee">
       <div class="employee__name">
         <v-select v-model="selectedEmployee" class="employee__select"
-                  :options="options" :clearable="false" @input="onEmployeeChange"></v-select>
+                  :options="options" :clearable="false" @input="onEmployeeChange">
+
+          <template #selected-option="{ label, img }">
+            <div class="selected-option">
+              <div class="selected-option__img">
+                <img :src="img" alt="Фото сотрудника">
+              </div>
+              <p>{{label}}</p>
+            </div>
+          </template>
+          <template #open-indicator="{ attributes }">
+            <img v-bind="attributes" :src="openIconImg" class="open-indicator">
+          </template>
+        </v-select>
       </div>
       <div class="employee__data">
         <div class="employee__trips">
@@ -67,6 +80,9 @@
 import backButtonImg from '../assets/button-back.png'
 import nextButtonImg from '../assets/button-next.png'
 import moment from 'moment'
+import {pics} from "@/assets/common/pics";
+import userPic from '../assets/img/user.jpg'
+import openIconImg from '../assets/img/open-icon.svg'
 
 export default {
   data() {
@@ -79,6 +95,7 @@ export default {
       tripLength: 0,
       backButtonImg,
       nextButtonImg,
+      openIconImg,
       masks: {
         weekdays: 'WWWW',
       },
@@ -178,7 +195,8 @@ export default {
       this.employeesInfo.map((employee, i) => {
         options[i] = {
           label: employee.name,
-          id: employee.id
+          id: employee.id,
+          img: pics[employee.id] || userPic
         }
       })
 
@@ -272,6 +290,16 @@ export default {
 .employee__select {
   height: fit-content;
   width: 100%;
+  position: relative;
+  &::after {
+    width: 1px;
+    height: 100%;
+    content: "";
+    top: 0;
+    right: 47px;
+    position: absolute;
+    border-left: 1px solid rgba(0, 66, 105, 0.28);
+  }
 }
 
 .employee__name {
@@ -333,6 +361,53 @@ export default {
   align-items: center;
 }
 
+.vs__dropdown-toggle {
+  border: 1px solid rgba(0, 66, 105, 0.28)
+}
+
+
+.employee__select {
+  height: 43px;
+  &::v-deep {
+    .vs__actions {
+      width: 47px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0;
+    }
+  }
+}
+
+.employee__select.vs--open::v-deep {
+  .vs__dropdown-toggle {
+    height: 100%;
+  }
+}
+
+
+.selected-option {
+  display: flex;
+  align-items: center;
+
+  p {
+    margin: 0;
+    margin-left: 10px;
+  }
+}
+
+.selected-option__img {
+  width: 32px;
+  height: 32px;
+  overflow: hidden;
+  border-radius: 50%;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
 ///
 
 
