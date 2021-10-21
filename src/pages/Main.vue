@@ -64,12 +64,12 @@
       </div>
       <div class="employee__data">
         <div class="employee__trips">
-          <p class="employee__duration">{{ attributes.length }}</p>
-          <p>{{ attributes.length | formatWord(['поездка', 'поездки', 'поездок']) }}</p>
+          <p class="employee__duration">{{ getTripsCount }}</p>
+          <p>{{ getTripsCount | formatWord(['поездка', 'поездки', 'поездок']) }}</p>
         </div>
         <div class="employee__days">
-          <p class="employee__duration">{{ tripLength }}</p>
-          <p>{{ tripLength | formatWord(['день', 'дня', 'дней']) }} командировки</p>
+          <p class="employee__duration">{{ getTripsDaysCount }}</p>
+          <p>{{ getTripsDaysCount | formatWord(['день', 'дня', 'дней']) }} командировки</p>
         </div>
       </div>
     </div>
@@ -79,7 +79,7 @@
 <script>
 import backButtonImg from '../assets/button-back.png'
 import nextButtonImg from '../assets/button-next.png'
-import moment from 'moment'
+// import moment from 'moment'
 import {pics} from "@/assets/common/pics";
 import userPic from '../assets/img/user.jpg'
 import openIconImg from '../assets/img/open-icon.svg'
@@ -92,7 +92,9 @@ export default {
       colors: {},
       holidays: [],
       displayedYear: null,
-      tripLength: 0,
+      displayedMonth: null,
+      // tripsCount: 0,
+      // tripLength: 0,
       backButtonImg,
       nextButtonImg,
       openIconImg,
@@ -213,6 +215,41 @@ export default {
     },
     fullAttributes() {
       return [...this.attributes, ...this.fullHolidays]
+    },
+    getTripsCount() {
+      // количество командировок
+      let tripsCount = 0
+      this.attributes.forEach((trip) => {
+        const startMonth = trip.dates[0].start.getMonth() + 1
+        const endMonth = trip.dates[0].end.getMonth() + 1
+        if ((this.displayedMonth >= startMonth) && (this.displayedMonth) <= endMonth) {
+          tripsCount++
+        }
+
+      })
+      return tripsCount
+
+    },
+    getTripsDaysCount() {
+      // количество дней командировок
+      let tripsDaysCount = 0
+      this.attributes.forEach((trip) => {
+
+        const start = trip.dates[0].start
+        const end = trip.dates[0].end
+
+        let day = new Date(start);
+        while(day <= end){
+          if (day.getMonth() + 1 === this.displayedMonth) {
+            tripsDaysCount ++
+          }
+
+          const newDate = day.setDate(day.getDate() + 1);
+          day = new Date(newDate);
+        }
+      })
+
+      return tripsDaysCount
     }
   },
 
@@ -230,6 +267,7 @@ export default {
   methods: {
     onPageChange(e) {
       this.displayedYear = e.year
+      this.displayedMonth = e.month
     },
 
     fetchEmployees() {
@@ -246,13 +284,12 @@ export default {
     onEmployeeChange() {
       if (!this.employeesInfo.length) return
       const employeeTrips = this.getEmployeeById(this.selectedEmployee.id).businessTrips
-      this.tripLength = 0
       this.attributes = employeeTrips.map((trip, i) => {
         const dateArrayStart = trip.date.start.split(`.`)
         const dateArrayEnd = trip.date.end.split(`.`)
         const [day, month, year] = dateArrayStart
         const [dayEnd, monthEnd, yearEnd] = dateArrayEnd
-        const employeeData = {
+        return {
           key: i,
           customData: {
             title: trip.cityName,
@@ -261,9 +298,6 @@ export default {
             {start: new Date(year, month - 1, day), end: new Date(yearEnd, monthEnd - 1, dayEnd)},
           ]
         }
-        const diff = new moment.duration(employeeData.dates[0].end - employeeData.dates[0].start);
-        this.tripLength += diff.asDays() + 1
-        return employeeData
       })
     },
     getEmployeeById(id) {
