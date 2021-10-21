@@ -245,10 +245,9 @@ export default {
     },
     onEmployeeChange() {
       if (!this.employeesInfo.length) return
-      this.attributes = []
       const employeeTrips = this.getEmployeeById(this.selectedEmployee.id).businessTrips
       this.tripLength = 0
-      employeeTrips.map((trip, i) => {
+      this.attributes = employeeTrips.map((trip, i) => {
         const dateArrayStart = trip.date.start.split(`.`)
         const dateArrayEnd = trip.date.end.split(`.`)
         const [day, month, year] = dateArrayStart
@@ -264,8 +263,7 @@ export default {
         }
         const diff = new moment.duration(employeeData.dates[0].end - employeeData.dates[0].start);
         this.tripLength += diff.asDays() + 1
-        this.attributes.push(employeeData)
-
+        return employeeData
       })
     },
     getEmployeeById(id) {
