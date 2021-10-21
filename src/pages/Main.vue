@@ -54,7 +54,7 @@
               <div class="selected-option__img">
                 <img :src="img" alt="Фото сотрудника">
               </div>
-              <p>{{label}}</p>
+              <p>{{ label }}</p>
             </div>
           </template>
           <template #open-indicator="{ attributes }">
@@ -176,6 +176,7 @@ export default {
     };
   },
   mounted() {
+    this.fetchEmployees()
     this.onEmployeeChange()
     fetch(`/API/colors.json`)
         .then(response => response.json())
@@ -191,29 +192,24 @@ export default {
   },
   computed: {
     options() {
-      const options = []
-      this.employeesInfo.map((employee, i) => {
-        options[i] = {
+      return this.employeesInfo.map((employee) => {
+        return {
           label: employee.name,
           id: employee.id,
           img: pics[employee.id] || userPic
         }
       })
-
-      return options
     },
     fullHolidays() {
-      const holidays = []
-      this.holidays.map((holiday, i) => {
+      return this.holidays.map((holiday) => {
         const [day, month] = holiday.split('.')
-        holidays[i] = {
+        return {
           customData: {
             title: "Праздник"
           },
           dates: new Date(this.displayedYear, month - 1, day)
         }
       })
-      return holidays
     },
     fullAttributes() {
       return [...this.attributes, ...this.fullHolidays]
@@ -235,7 +231,8 @@ export default {
     onPageChange(e) {
       this.displayedYear = e.year
     },
-    onEmployeeChange() {
+
+    fetchEmployees() {
       fetch(`/API/employees.json`)
           .then(response => response.json())
           .then((response) => {
@@ -243,34 +240,33 @@ export default {
             if (!this.selectedEmployee.label) {
               this.selectedEmployee = this.options[0]
             }
-
-            this.attributes = []
-            const employeeTrips = this.getEmployeeById(this.selectedEmployee.id).businessTrips
-            this.tripLength = 0
-            employeeTrips.map((trip, i) => {
-              const dateArrayStart = trip.date.start.split(`.`)
-              const dateArrayEnd = trip.date.end.split(`.`)
-              const [day, month, year] = dateArrayStart
-              const [dayEnd, monthEnd, yearEnd] = dateArrayEnd
-              const employeeData = {
-                key: i,
-                customData: {
-                  title: trip.cityName,
-                },
-                // dates: new Date(year, month - 1, day),
-                dates: [
-                  {start: new Date(year, month - 1, day), end: new Date(yearEnd, monthEnd - 1, dayEnd)},
-                ]
-              }
-              // console.log(3333, employeeData.dates[0].end - employeeData.dates[0].start)
-              const diff = new moment.duration(employeeData.dates[0].end - employeeData.dates[0].start);
-              this.tripLength += diff.asDays() + 1
-              // console.log(`asDays`, diff.asDays() + 1);
-              this.attributes.push(employeeData)
-
-            })
-
+            this.onEmployeeChange()
           })
+    },
+    onEmployeeChange() {
+      if (!this.employeesInfo.length) return
+      this.attributes = []
+      const employeeTrips = this.getEmployeeById(this.selectedEmployee.id).businessTrips
+      this.tripLength = 0
+      employeeTrips.map((trip, i) => {
+        const dateArrayStart = trip.date.start.split(`.`)
+        const dateArrayEnd = trip.date.end.split(`.`)
+        const [day, month, year] = dateArrayStart
+        const [dayEnd, monthEnd, yearEnd] = dateArrayEnd
+        const employeeData = {
+          key: i,
+          customData: {
+            title: trip.cityName,
+          },
+          dates: [
+            {start: new Date(year, month - 1, day), end: new Date(yearEnd, monthEnd - 1, dayEnd)},
+          ]
+        }
+        const diff = new moment.duration(employeeData.dates[0].end - employeeData.dates[0].start);
+        this.tripLength += diff.asDays() + 1
+        this.attributes.push(employeeData)
+
+      })
     },
     getEmployeeById(id) {
       return this.employeesInfo.find(it => it.id === id)
@@ -291,6 +287,7 @@ export default {
   height: fit-content;
   width: 100%;
   position: relative;
+
   &::after {
     width: 1px;
     height: 100%;
@@ -368,6 +365,7 @@ export default {
 
 .employee__select {
   height: 43px;
+
   &::v-deep {
     .vs__actions {
       width: 47px;
@@ -375,6 +373,10 @@ export default {
       justify-content: center;
       align-items: center;
       padding: 0;
+    }
+
+    .vs__search {
+      display: none;
     }
   }
 }
@@ -391,8 +393,8 @@ export default {
   align-items: center;
 
   p {
-    margin: 0;
-    margin-left: 10px;
+    margin: 0 0 0 10px;
+    white-space: nowrap;
   }
 }
 
@@ -408,6 +410,7 @@ export default {
     object-fit: cover;
   }
 }
+
 ///
 
 
