@@ -178,13 +178,13 @@ export default {
   mounted() {
     this.fetchEmployees()
     this.onEmployeeChange()
-    fetch(`/API/colors.json`)
+    fetch(`./API/colors.json`)
         .then(response => response.json())
         .then(response => {
           this.colors = response
         })
 
-    fetch(`/API/holidays.json`)
+    fetch(`./API/holidays.json`)
         .then(response => response.json())
         .then(response => {
           this.holidays = response
@@ -233,7 +233,7 @@ export default {
     },
 
     fetchEmployees() {
-      fetch(`/API/employees.json`)
+      fetch(`./API/employees.json`)
           .then(response => response.json())
           .then((response) => {
             this.employeesInfo = response.employees
